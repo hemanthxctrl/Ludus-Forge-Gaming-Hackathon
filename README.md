@@ -119,7 +119,7 @@ Feel free to fork and contribute! ⭐
 
 ## Contributors
 
-- hemanthxctrl — uppalahemanthsrinivasgmail.com
+- hemanthxctrl — uppalahemanthsrinivas@gmail.com
 - P.Gokulesh Varma — vu.241fa04822@gmail.com
 - J.Bhanu Teja - bhanujammula0@gmail.com
 - Yarra Sri Karthikeya karthikyarra358@gmail.com
