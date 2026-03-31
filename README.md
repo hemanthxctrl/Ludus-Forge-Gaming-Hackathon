@@ -1,4 +1,4 @@
-﻿# 🚀🎮 Ludus Forge Gaming Hackathon
+﻿# 🚀 Ludus Forge Gaming Hackathon
 Welcome to the **Ludus Forge Gaming Hackathon** project! This repository hosts the source code for our gaming hack built during the event. The goal of this project is to deliver a browser-based psychological horror puzzle game called **N-BLOCK: Mind's Descent**.
 
 ---
