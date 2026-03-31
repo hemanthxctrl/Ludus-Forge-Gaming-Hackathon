@@ -484,8 +484,10 @@
         /* Instructions screen */
         #instructions-screen {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: #000;
             display: none;
             flex-direction: column;
@@ -716,73 +718,122 @@
         /* ── HORROR OVERLAYS ── */
         #scare-overlay {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 50;
             opacity: 0;
             transition: opacity 0.05s;
-            background: radial-gradient(ellipse at 50% 50%, rgba(180,0,0,0.18) 0%, rgba(80,0,0,0.55) 100%);
+            background: radial-gradient(ellipse at 50% 50%, rgba(180, 0, 0, 0.18) 0%, rgba(80, 0, 0, 0.55) 100%);
         }
 
         #blood-drip {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 51;
             opacity: 0;
             transition: opacity 0.3s;
             background:
-                radial-gradient(ellipse 3px 40px at 15% 0%, rgba(180,0,0,0.85) 0%, transparent 100%),
-                radial-gradient(ellipse 2px 60px at 32% 0%, rgba(160,0,0,0.7)  0%, transparent 100%),
-                radial-gradient(ellipse 4px 30px at 57% 0%, rgba(200,0,0,0.9)  0%, transparent 100%),
-                radial-gradient(ellipse 2px 50px at 74% 0%, rgba(150,0,0,0.65) 0%, transparent 100%),
-                radial-gradient(ellipse 3px 45px at 88% 0%, rgba(180,0,0,0.8)  0%, transparent 100%);
+                radial-gradient(ellipse 3px 40px at 15% 0%, rgba(180, 0, 0, 0.85) 0%, transparent 100%),
+                radial-gradient(ellipse 2px 60px at 32% 0%, rgba(160, 0, 0, 0.7) 0%, transparent 100%),
+                radial-gradient(ellipse 4px 30px at 57% 0%, rgba(200, 0, 0, 0.9) 0%, transparent 100%),
+                radial-gradient(ellipse 2px 50px at 74% 0%, rgba(150, 0, 0, 0.65) 0%, transparent 100%),
+                radial-gradient(ellipse 3px 45px at 88% 0%, rgba(180, 0, 0, 0.8) 0%, transparent 100%);
         }
 
         #crack-overlay {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 52;
             opacity: 0;
             transition: opacity 0.1s;
             background-image:
-                linear-gradient(135deg, rgba(255,0,0,0.06) 1px, transparent 1px),
-                linear-gradient(45deg,  rgba(255,0,0,0.04) 1px, transparent 1px);
+                linear-gradient(135deg, rgba(255, 0, 0, 0.06) 1px, transparent 1px),
+                linear-gradient(45deg, rgba(255, 0, 0, 0.04) 1px, transparent 1px);
             background-size: 80px 80px, 60px 60px;
             mix-blend-mode: overlay;
         }
 
         @keyframes vigPulse {
-            0%   { box-shadow: inset 0 0 80px rgba(140,0,0,0.0); }
-            50%  { box-shadow: inset 0 0 80px rgba(140,0,0,0.5); }
-            100% { box-shadow: inset 0 0 80px rgba(140,0,0,0.0); }
+            0% {
+                box-shadow: inset 0 0 80px rgba(140, 0, 0, 0.0);
+            }
+
+            50% {
+                box-shadow: inset 0 0 80px rgba(140, 0, 0, 0.5);
+            }
+
+            100% {
+                box-shadow: inset 0 0 80px rgba(140, 0, 0, 0.0);
+            }
         }
+
         #game-container.horror-pulse {
             animation: vigPulse 0.6s ease-in-out;
         }
 
         @keyframes scareFlash {
-            0%   { background: rgba(255,0,0,0.0); }
-            10%  { background: rgba(255,0,0,0.45); }
-            30%  { background: rgba(255,0,0,0.2); }
-            60%  { background: rgba(255,0,0,0.08); }
-            100% { background: rgba(255,0,0,0.0); }
+            0% {
+                background: rgba(255, 0, 0, 0.0);
+            }
+
+            10% {
+                background: rgba(255, 0, 0, 0.45);
+            }
+
+            30% {
+                background: rgba(255, 0, 0, 0.2);
+            }
+
+            60% {
+                background: rgba(255, 0, 0, 0.08);
+            }
+
+            100% {
+                background: rgba(255, 0, 0, 0.0);
+            }
         }
+
         #scare-overlay.flash {
             animation: scareFlash 0.55s ease-out forwards;
         }
+
         @keyframes glitchShake {
-            0%   { transform: translate(0,0) skewX(0deg); }
-            20%  { transform: translate(-4px, 2px) skewX(-2deg); }
-            40%  { transform: translate(5px,-3px) skewX(3deg); }
-            60%  { transform: translate(-3px, 4px) skewX(-1deg); }
-            80%  { transform: translate(3px,-2px) skewX(2deg); }
-            100% { transform: translate(0,0) skewX(0deg); }
+            0% {
+                transform: translate(0, 0) skewX(0deg);
+            }
+
+            20% {
+                transform: translate(-4px, 2px) skewX(-2deg);
+            }
+
+            40% {
+                transform: translate(5px, -3px) skewX(3deg);
+            }
+
+            60% {
+                transform: translate(-3px, 4px) skewX(-1deg);
+            }
+
+            80% {
+                transform: translate(3px, -2px) skewX(2deg);
+            }
+
+            100% {
+                transform: translate(0, 0) skewX(0deg);
+            }
         }
+
         #game-container.glitch {
             animation: glitchShake 0.35s ease-in-out;
         }
@@ -1165,7 +1216,7 @@
                 try {
                     this.droneGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5);
                     this.droneNode.stop(this.ctx.currentTime + 1.6);
-                } catch(e) {}
+                } catch (e) { }
                 this.droneNode = null;
                 this.droneGain = null;
             },
@@ -1339,8 +1390,8 @@
         // ── SANITY UPDATE ────────────────────────────────────────────────
         // ── HORROR VISUAL REFERENCES ─────────────────────────────────
         const $scareOverlay = document.getElementById('scare-overlay');
-        const $bloodDrip    = document.getElementById('blood-drip');
-        const $crackOverlay  = document.getElementById('crack-overlay');
+        const $bloodDrip = document.getElementById('blood-drip');
+        const $crackOverlay = document.getElementById('crack-overlay');
         const $gameContainer = document.getElementById('game-container');
 
         function triggerScareFlash() {
@@ -1992,9 +2043,30 @@
             buildInteractibles() {
                 const fd = this.floorData;
 
-                // Faculty member (teacher) — left area
-                this.teacherX = 160;
-                this.teacherY = 300;
+                // Faculty member (teacher) — random start pos per level
+                // Each level defines a set of wander waypoints (in hallway bounds)
+                const teacherWaypoints = [
+                    // Floor G
+                    [{ x: 120, y: 240 }, { x: 200, y: 380 }, { x: 160, y: 300 }, { x: 100, y: 450 }, { x: 220, y: 180 }],
+                    // Floor 1
+                    [{ x: 140, y: 200 }, { x: 260, y: 420 }, { x: 180, y: 300 }, { x: 320, y: 160 }, { x: 100, y: 460 }],
+                    // Floor 2
+                    [{ x: 100, y: 300 }, { x: 220, y: 200 }, { x: 300, y: 440 }, { x: 160, y: 380 }, { x: 250, y: 140 }],
+                    // Floor 3
+                    [{ x: 200, y: 160 }, { x: 120, y: 420 }, { x: 280, y: 300 }, { x: 160, y: 240 }, { x: 320, y: 460 }],
+                    // Floor 4
+                    [{ x: 130, y: 340 }, { x: 240, y: 180 }, { x: 180, y: 420 }, { x: 100, y: 260 }, { x: 300, y: 380 }],
+                ];
+                const flIdx = GS.currentFloor;
+                const wps = teacherWaypoints[flIdx] || teacherWaypoints[0];
+                // Pick a random starting waypoint
+                const startWP = wps[Math.floor(Math.random() * wps.length)];
+                this.teacherX = startWP.x;
+                this.teacherY = startWP.y;
+                this.teacherWaypoints = wps;
+                // Pick a different random waypoint as the first target
+                this.teacherWPIdx = Math.floor(Math.random() * wps.length);
+                this.teacherSpeed = 0.5; // 0.5x speed
                 this.teacherGraphic = this.add.graphics();
                 this.drawTeacher();
 
@@ -2197,6 +2269,9 @@
 
                 this.drawPlayer();
 
+                // Teacher wander update
+                this.updateTeacher();
+
                 // Monster update
                 this.updateMonster(moved);
 
@@ -2249,6 +2324,35 @@
                 });
 
                 updateHint();
+            }
+
+            // ── TEACHER WANDER ────────────────────────────────────────────
+            updateTeacher() {
+                const wp = this.teacherWaypoints[this.teacherWPIdx];
+                const dx = wp.x - this.teacherX;
+                const dy = wp.y - this.teacherY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 6) {
+                    // Reached waypoint — pick a new random one (different from current)
+                    let nextIdx;
+                    do {
+                        nextIdx = Math.floor(Math.random() * this.teacherWaypoints.length);
+                    } while (nextIdx === this.teacherWPIdx && this.teacherWaypoints.length > 1);
+                    this.teacherWPIdx = nextIdx;
+                } else {
+                    // Move toward waypoint at 0.5x speed
+                    this.teacherX += (dx / dist) * this.teacherSpeed;
+                    this.teacherY += (dy / dist) * this.teacherSpeed;
+                    // Clamp to hallway area
+                    this.teacherX = Phaser.Math.Clamp(this.teacherX, 30, 350);
+                    this.teacherY = Phaser.Math.Clamp(this.teacherY, 100, 500);
+                }
+
+                // Redraw teacher at new position
+                this.drawTeacher();
+                // Move label above teacher
+                this.teacherLabel.setPosition(this.teacherX, this.teacherY - 36);
             }
 
             updateMonster(playerMoved) {
