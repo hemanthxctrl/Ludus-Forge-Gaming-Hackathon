@@ -481,6 +481,114 @@
             line-height: 2;
         }
 
+        /* Instructions screen */
+        #instructions-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 32px;
+            gap: 0;
+        }
+
+        #instr-title {
+            color: #ff3333;
+            font-size: 18px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            text-shadow: 0 0 10px #cc0000;
+        }
+
+        #instr-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            max-width: 680px;
+            margin-bottom: 24px;
+        }
+
+        .instr-card {
+            background: #0a0a0a;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            padding: 16px 20px;
+        }
+
+        .instr-card-title {
+            color: #ff6b35;
+            font-size: 9px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 8px;
+        }
+
+        .instr-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 9px;
+        }
+
+        .instr-key {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 10px;
+            padding: 3px 8px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .instr-desc {
+            color: #666;
+            font-size: 11px;
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+
+        #instr-warning {
+            color: #333;
+            font-size: 10px;
+            font-style: italic;
+            letter-spacing: 1px;
+            text-align: center;
+            max-width: 500px;
+            line-height: 1.9;
+            margin-bottom: 28px;
+        }
+
+        #instr-begin {
+            background: #1a0505;
+            border: 2px solid #cc0000;
+            color: #ff3333;
+            padding: 13px 48px;
+            font-family: 'Creepster', cursive;
+            font-size: 28px;
+            cursor: pointer;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        #instr-begin:hover {
+            background: #cc0000;
+            color: #000;
+            box-shadow: 0 0 18px #ff0000;
+        }
+
         /* End screen */
         #end-screen {
             position: absolute;
@@ -734,6 +842,78 @@
                 WASD / ARROWS — MOVE &nbsp;&nbsp; E — INTERACT<br>
                 REACH FLOOR 5 · ROOM 502 · BEFORE YOUR MIND BREAKS
             </div>
+        </div>
+
+        <!-- INSTRUCTIONS SCREEN -->
+        <div id="instructions-screen">
+            <div id="instr-title">⚠ HOW TO SURVIVE ⚠</div>
+            <div id="instr-grid">
+                <div class="instr-card">
+                    <div class="instr-card-title">🕹 Controls</div>
+                    <div class="instr-row">
+                        <span class="instr-key">W A S D</span>
+                        <span class="instr-desc">Move your character</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">↑ ↓ ← →</span>
+                        <span class="instr-desc">Arrow keys also work</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">E</span>
+                        <span class="instr-desc">Interact with teachers, puzzles & stairs</span>
+                    </div>
+                </div>
+                <div class="instr-card">
+                    <div class="instr-card-title">🎯 Objective</div>
+                    <div class="instr-row">
+                        <span class="instr-key">STEP 1</span>
+                        <span class="instr-desc">Find the teacher and press E to hear their clue</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">STEP 2</span>
+                        <span class="instr-desc">Use the clue to solve the floor puzzle</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">STEP 3</span>
+                        <span class="instr-desc">Reach the unlocked staircase to advance</span>
+                    </div>
+                </div>
+                <div class="instr-card">
+                    <div class="instr-card-title">🧠 Sanity</div>
+                    <div class="instr-row">
+                        <span class="instr-key">DRAIN</span>
+                        <span class="instr-desc">Wrong answers and monsters drain sanity</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">RESTORE</span>
+                        <span class="instr-desc">Solving puzzles and listening to faculty restores sanity</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">WARNING</span>
+                        <span class="instr-desc">Reach 0% sanity and it's over</span>
+                    </div>
+                </div>
+                <div class="instr-card">
+                    <div class="instr-card-title">👻 Monsters</div>
+                    <div class="instr-row">
+                        <span class="instr-key">AVOID</span>
+                        <span class="instr-desc">Each floor has a unique monster chasing you</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">CAUGHT</span>
+                        <span class="instr-desc">Getting caught costs 15 sanity and resets position</span>
+                    </div>
+                    <div class="instr-row">
+                        <span class="instr-key">DARK</span>
+                        <span class="instr-desc">Standing in dark zones drains sanity over time</span>
+                    </div>
+                </div>
+            </div>
+            <div id="instr-warning">
+                "There are 5 floors. Each one darker than the last.<br>
+                Trust the teachers. Fear the shadows. Hold your mind together."
+            </div>
+            <button id="instr-begin">BEGIN DESCENT</button>
         </div>
 
         <!-- END SCREEN -->
@@ -2184,10 +2364,17 @@
             }
         }
 
-        // ── MENU ─────────────────────────────────────────────────────────
+        // ── INSTRUCTIONS SCREEN ───────────────────────────────────────────
+        const $instrScreen = document.getElementById('instructions-screen');
+
         document.getElementById('menu-start').onclick = () => {
             AudioSys.init();
             document.getElementById('menu-screen').style.display = 'none';
+            $instrScreen.style.display = 'flex';
+        };
+
+        document.getElementById('instr-begin').onclick = () => {
+            $instrScreen.style.display = 'none';
             showFloorTransition(0, () => {
                 phaserGame.scene.start('GameScene');
             });
