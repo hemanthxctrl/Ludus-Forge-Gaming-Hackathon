@@ -1,10 +1,1930 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <!-- This will automatically redirect players to your game file -->
-    <meta http-equiv="refresh" content="0; url='./404 SQUAD/N-block-mind-descent.html'" />
-  </head>
-  <body style="background-color: black; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
-    <p>Loading the game...</p>
-  </body>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <title>N-BLOCK: Mind's Descent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Creepster', monospace;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* ── Overlay UI ── */
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Sanity bar */
+        #sanity-wrap {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #sanity-label {
+            color: #aaa;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        #sanity-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #sanity-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #00ff88, #88ff00);
+            border-radius: 4px;
+            transition: width 0.4s ease, background 0.6s ease;
+        }
+
+        #sanity-value {
+            color: #fff;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        #floor-label {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            color: #555;
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* Whisper text */
+        #whisper-box {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 520px;
+            background: rgba(0, 0, 0, 0.82);
+            border: 1px solid #2a2a2a;
+            border-radius: 2px;
+            padding: 14px 20px;
+            display: none;
+            pointer-events: all;
+        }
+
+        #whisper-name {
+            color: #ff6b35;
+            font-size: 10px;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        #whisper-text {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        #whisper-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            color: #444;
+            font-size: 18px;
+            cursor: pointer;
+            pointer-events: all;
+            line-height: 1;
+        }
+
+        #whisper-close:hover {
+            color: #ff6b35;
+        }
+
+        /* Puzzle modal */
+        #puzzle-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 480px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 28px 32px;
+            display: none;
+            pointer-events: all;
+            z-index: 20;
+        }
+
+        #puzzle-title {
+            color: #ff6b35;
+            font-size: 11px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        #puzzle-body {
+            color: #bbb;
+            font-size: 13px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        #puzzle-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .puzzle-btn {
+            background: #111;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 10px 16px;
+            font-family: 'Creepster', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: left;
+            border-radius: 2px;
+            transition: border-color 0.2s, color 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .puzzle-btn:hover {
+            border-color: #ff6b35;
+            color: #fff;
+        }
+
+        .puzzle-btn.correct {
+            border-color: #00ff88;
+            color: #00ff88;
+            background: #001a0d;
+        }
+
+        .puzzle-btn.wrong {
+            border-color: #ff3344;
+            color: #ff3344;
+            background: #1a0005;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-6px)
+            }
+
+            75% {
+                transform: translateX(6px)
+            }
+        }
+
+        #puzzle-attempts {
+            color: #444;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+
+        #puzzle-special-input {
+            display: none;
+        }
+
+        #puzzle-number-input {
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 16px;
+            font-family: 'Creepster', monospace;
+            font-size: 13px;
+            width: 100%;
+            border-radius: 2px;
+            outline: none;
+            letter-spacing: 2px;
+        }
+
+        #puzzle-number-input:focus {
+            border-color: #ff6b35;
+        }
+
+        #puzzle-submit-btn {
+            background: #111;
+            border: 1px solid #ff6b35;
+            color: #ff6b35;
+            padding: 10px 24px;
+            font-family: 'Creepster', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 2px;
+            letter-spacing: 2px;
+            transition: background 0.2s;
+        }
+
+        #puzzle-submit-btn:hover {
+            background: #1a0800;
+        }
+
+        #puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            display: none;
+        }
+
+        .grid-tile {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            border: 1px solid #333;
+            background: #111;
+            cursor: pointer;
+            color: #aaa;
+            border-radius: 2px;
+            transition: border-color 0.2s, background 0.2s;
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .grid-tile:hover {
+            border-color: #ff6b35;
+            color: #fff;
+        }
+
+        .grid-tile.selected {
+            border-color: #00ff88;
+            background: #001a0d;
+            color: #00ff88;
+        }
+
+        .grid-tile.wrong-tile {
+            border-color: #ff3344;
+            background: #1a0005;
+            animation: shake 0.3s;
+        }
+
+        .grid-tile.collapsed {
+            background: #050505;
+            color: #222;
+            border-color: #151515;
+            cursor: default;
+        }
+
+        /* Painting order puzzle */
+        #painting-area {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .painting-card {
+            background: #111;
+            border: 1px solid #2a2a2a;
+            padding: 12px 16px;
+            border-radius: 2px;
+            color: #888;
+            font-size: 12px;
+            cursor: grab;
+            transition: border-color 0.2s, color 0.2s;
+            user-select: none;
+            letter-spacing: 1px;
+        }
+
+        .painting-card.dragging {
+            opacity: 0.4;
+        }
+
+        .painting-card:hover {
+            border-color: #ff6b35;
+            color: #ccc;
+        }
+
+        /* Final hold button */
+        #hold-btn {
+            display: none;
+            background: #0a0a0a;
+            border: 2px solid #ff6b35;
+            color: #ff6b35;
+            padding: 18px 40px;
+            font-family: 'Creepster', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 2px;
+            letter-spacing: 3px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        #hold-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #ff6b35;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Notification */
+        #notif {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 51, 68, 0.12);
+            border: 1px solid #ff3344;
+            color: #ff3344;
+            padding: 8px 20px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            border-radius: 2px;
+            display: none;
+            pointer-events: none;
+        }
+
+        #notif.good {
+            background: rgba(0, 255, 136, 0.08);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        /* Menu screen */
+        #menu-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 0;
+        }
+
+        #menu-tagline {
+            color: #333;
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
+
+        #menu-title {
+            color: #cc0000;
+            font-size: 80px;
+            font-weight: normal;
+            text-shadow: 0px 0px 15px #ff0000;
+            letter-spacing: -1px;
+            line-height: 1;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        #menu-subtitle {
+            color: #ff3333;
+            font-size: 24px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        #menu-quote {
+            color: #2a2a2a;
+            font-size: 11px;
+            font-style: italic;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.8;
+            margin-bottom: 56px;
+            letter-spacing: 0.5px;
+        }
+
+        #menu-start {
+            background: #1a0505;
+            border: 2px solid #cc0000;
+            color: #ff3333;
+            padding: 14px 48px;
+            font-family: 'Creepster', cursive;
+            font-size: 32px;
+            cursor: pointer;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        #menu-start:hover {
+            background: #cc0000;
+            color: #000;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        #menu-controls {
+            margin-top: 32px;
+            color: #2a2a2a;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-align: center;
+            line-height: 2;
+        }
+
+        /* End screen */
+        #end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 20px;
+        }
+
+        #end-title {
+            color: #ff0000;
+            font-size: 64px;
+            text-shadow: 0 0 20px #cc0000;
+            letter-spacing: 2px;
+        }
+
+        #end-subtitle {
+            color: #ff6666;
+            font-size: 24px;
+            letter-spacing: 3px;
+        }
+
+        #end-restart {
+            background: #2a0a0a;
+            border: 2px solid #550000;
+            color: #ff3333;
+            padding: 12px 36px;
+            font-family: 'Creepster', cursive;
+            font-size: 28px;
+            cursor: pointer;
+            letter-spacing: 3px;
+            margin-top: 20px;
+            transition: all 0.3s;
+            border-radius: 2px;
+        }
+
+        #end-restart:hover {
+            border-color: #ff6b35;
+            color: #ff6b35;
+        }
+
+        /* Floor transition */
+        #floor-transition {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+        }
+
+        #ft-floor {
+            color: #333;
+            font-size: 10px;
+            letter-spacing: 6px;
+            margin-bottom: 12px;
+        }
+
+        #ft-name {
+            color: #ff0000;
+            font-size: 64px;
+            letter-spacing: 2px;
+        }
+
+        #ft-theme {
+            color: #cc0000;
+            font-size: 24px;
+            letter-spacing: 4px;
+            margin-top: 8px;
+        }
+
+        /* Sanity effects */
+        #vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0) 100%);
+            transition: background 0.5s;
+            z-index: 5;
+        }
+
+        #noise-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 6;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+            mix-blend-mode: overlay;
+            transition: opacity 0.5s;
+        }
+
+        /* Interact hint */
+        #interact-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #333;
+            font-size: 10px;
+            letter-spacing: 3px;
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+
+        <!-- PHASER CANVAS GOES HERE -->
+
+        <!-- UI OVERLAY -->
+        <div id="ui-overlay">
+            <div id="floor-label">FLOOR G</div>
+            <div id="sanity-wrap">
+                <div id="sanity-label">SANITY</div>
+                <div id="sanity-bar-bg">
+                    <div id="sanity-bar"></div>
+                </div>
+                <div id="sanity-value">100%</div>
+            </div>
+            <div id="notif"></div>
+            <div id="whisper-box">
+                <span id="whisper-close">×</span>
+                <div id="whisper-name"></div>
+                <div id="whisper-text"></div>
+            </div>
+            <div id="puzzle-modal">
+                <div id="puzzle-title"></div>
+                <div id="puzzle-body"></div>
+                <div id="puzzle-input-area">
+                    <!-- dynamically populated -->
+                </div>
+                <div id="puzzle-attempts"></div>
+            </div>
+            <div id="interact-hint">[ E ] INTERACT</div>
+        </div>
+
+        <!-- VIGNETTE & NOISE -->
+        <div id="vignette"></div>
+        <div id="noise-overlay"></div>
+
+        <!-- MENU -->
+        <div id="menu-screen">
+            <div id="menu-tagline">N-Block — Room 502</div>
+            <div id="menu-title">MIND'S<br>DESCENT</div>
+            <div id="menu-subtitle">Psychological Horror · Puzzle</div>
+            <div id="menu-quote">"A mind is its own place — and in itself<br>can make a heaven of hell, or a hell of
+                heaven."</div>
+            <button id="menu-start">ENTER THE BUILDING</button>
+            <div id="menu-controls">
+                WASD / ARROWS — MOVE &nbsp;&nbsp; E — INTERACT<br>
+                REACH FLOOR 5 · ROOM 502 · BEFORE YOUR MIND BREAKS
+            </div>
+        </div>
+
+        <!-- END SCREEN -->
+        <div id="end-screen">
+            <div id="end-title"></div>
+            <div id="end-subtitle"></div>
+            <button id="end-restart">TRY AGAIN</button>
+        </div>
+
+        <!-- FLOOR TRANSITION -->
+        <div id="floor-transition">
+            <div id="ft-floor"></div>
+            <div id="ft-name"></div>
+            <div id="ft-theme"></div>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // N-BLOCK: MIND'S DESCENT — COMPLETE GAME
+        // ═══════════════════════════════════════════════════════════════
+
+        // ── FLOOR DATA ──────────────────────────────────────────────────
+        const FLOORS = [
+            {
+                id: 'G',
+                name: 'THE THRESHOLD',
+                theme: 'IDENTITY — WHO AM I?',
+                sanityStart: 100, sanityEnd: 80,
+                bgColor: 0x0a0a0f,
+                wallColor: 0x1a1a2a,
+                floorColor: 0x0d0d15,
+                monsterColor: 0x8888ff,
+                monsterLabel: 'THE SHADOW',
+                faculty: {
+                    name: 'DR. MEERA — English & Philosophy',
+                    whisper: '"The one that does not belong will repeat itself. A lie always gives itself away by saying the same thing twice."'
+                },
+                puzzle: {
+                    type: 'lockers',
+                    title: 'THE LOCKER SEQUENCE',
+                    body: 'Five lockers line the corridor. Each has a symbol sequence. One locker has a flaw — a repeated pair. Find it. Open it. Take the staircase key.',
+                    options: [
+                        { label: '★ ◆ ★ ◆ ●', correct: false },
+                        { label: '◆ ★ ◆ ★ ◆', correct: false },
+                        { label: '● ◆ ★ ◆ ●', correct: false },
+                        { label: '★ ★ ◆ ● ◆', correct: true },  // ★★ repeated pair
+                        { label: '◆ ● ★ ◆ ●', correct: false },
+                    ]
+                }
+            },
+            {
+                id: '1',
+                name: 'THE MEMORY MAZE',
+                theme: 'MEMORY — WHAT DO I REMEMBER?',
+                sanityStart: 80, sanityEnd: 60,
+                bgColor: 0x0f0a0a,
+                wallColor: 0x2a1a1a,
+                floorColor: 0x150d0d,
+                monsterColor: 0xff8888,
+                monsterLabel: 'THE CLASSMATES',
+                faculty: {
+                    name: 'PROF. RAJAN — History',
+                    whisper: '"You need not remember all of it. The key number is the one that appears in every important date. Think of what we studied — 1, 9, 4, 7."'
+                },
+                puzzle: {
+                    type: 'sequence',
+                    title: 'THE BLACKBOARD SEQUENCE',
+                    body: 'A sequence of numbers flashed on the cracked blackboard. Enter it correctly. The sequence starts with 1947. Remember what Prof. Rajan said about the key number.',
+                    answer: '19478',
+                    placeholder: 'Enter the sequence...',
+                    hint: 'The sequence: 1947 followed by the digit that appears in every number of the sequence'
+                }
+            },
+            {
+                id: '2',
+                name: 'THE LOGIC TRAP',
+                theme: 'REASON — IS WHAT I SEE REAL?',
+                sanityStart: 60, sanityEnd: 38,
+                bgColor: 0x0a0f0a,
+                wallColor: 0x1a2a1a,
+                floorColor: 0x0d150d,
+                monsterColor: 0x88ff88,
+                monsterLabel: 'THE EQUATION',
+                faculty: {
+                    name: 'MS. PRIYA — Mathematics',
+                    whisper: '"Trust only what is divisible by itself and one. The primes will hold your weight. The composites will not."'
+                },
+                puzzle: {
+                    type: 'grid',
+                    title: 'THE TILE CROSSING',
+                    body: 'A 4×4 grid of tiles. Step only on tiles that are PRIME numbers. The composites will collapse. Cross to reach the staircase.',
+                    // 4x4 grid, values 1-16. Primes: 2,3,5,7,11,13
+                    tiles: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                    primes: [2, 3, 5, 7, 11, 13],
+                    correctPath: [2, 3, 5, 7, 11, 13] // player must click all primes
+                }
+            },
+            {
+                id: '3',
+                name: 'THE GUILT GALLERY',
+                theme: 'SHAME — WHAT HAVE I DONE?',
+                sanityStart: 38, sanityEnd: 18,
+                bgColor: 0x0f0f0a,
+                wallColor: 0x2a2a1a,
+                floorColor: 0x15150d,
+                monsterColor: 0xffff88,
+                monsterLabel: 'THE REGRET',
+                faculty: {
+                    name: 'DR. ANAND — Psychology',
+                    whisper: '"We do not heal by reordering the past. We heal by accepting when each wound was made. First came the silence, then the words, then the consequence."'
+                },
+                puzzle: {
+                    type: 'order',
+                    title: 'THE GUILT GALLERY',
+                    body: 'Three memory paintings on the wall. Arrange their plaques in the correct chronological order. Dr. Anand\'s whisper is your only guide.',
+                    items: [
+                        { id: 'c', label: 'THE CONSEQUENCE — I stopped trying' },
+                        { id: 'w', label: 'THE WORDS — I said things I cannot unsay' },
+                        { id: 's', label: 'THE SILENCE — I said nothing when I should have spoken' },
+                    ],
+                    correctOrder: ['s', 'w', 'c']
+                }
+            },
+            {
+                id: '4',
+                name: 'THE ACCEPTANCE',
+                theme: 'TRUTH — WHO MUST I BECOME?',
+                sanityStart: 18, sanityEnd: 100,
+                bgColor: 0x0a0a0a,
+                wallColor: 0x1a1a1a,
+                floorColor: 0x0d0d0d,
+                monsterColor: 0xffffff,
+                monsterLabel: 'THE SELF',
+                faculty: {
+                    name: 'PRINCIPAL KRISHNAMURTHY',
+                    whisper: '"You always had what you needed, Arjun. You just refused to look. The room is unlocked from within. Stand still. Face it. Hold."'
+                },
+                puzzle: {
+                    type: 'hold',
+                    title: 'ROOM 502',
+                    body: 'The door to Room 502. Five locks — four already open. The fifth has no key. Hold the door for 5 seconds. Do not let go. Do not run.',
+                }
+            }
+        ];
+
+        // ── GAME STATE ───────────────────────────────────────────────────
+        const GS = {
+            currentFloor: 0,
+            sanity: 100,
+            gameActive: false,
+            puzzleSolved: false,
+            facultyClueRead: false,
+            nearFaculty: false,
+            nearPuzzle: false,
+            nearStairs: false,
+            puzzleOpen: false,
+            whisperOpen: false,
+            attempts: 0,
+            gridSelected: [],
+            orderItems: null,
+            draggingCard: null,
+        };
+
+        // ── DOM REFS ─────────────────────────────────────────────────────
+        const $sanityBar = document.getElementById('sanity-bar');
+        const $sanityVal = document.getElementById('sanity-value');
+        const $floorLabel = document.getElementById('floor-label');
+        const $whisperBox = document.getElementById('whisper-box');
+        const $whisperName = document.getElementById('whisper-name');
+        const $whisperText = document.getElementById('whisper-text');
+        const $puzzleModal = document.getElementById('puzzle-modal');
+        const $puzzleTitle = document.getElementById('puzzle-title');
+        const $puzzleBody = document.getElementById('puzzle-body');
+        const $puzzleInput = document.getElementById('puzzle-input-area');
+        const $puzzleAttempts = document.getElementById('puzzle-attempts');
+        const $notif = document.getElementById('notif');
+        const $hint = document.getElementById('interact-hint');
+        const $vignette = document.getElementById('vignette');
+        const $noise = document.getElementById('noise-overlay');
+        const $endScreen = document.getElementById('end-screen');
+        const $endTitle = document.getElementById('end-title');
+        const $endSub = document.getElementById('end-subtitle');
+        const $ft = document.getElementById('floor-transition');
+        const $ftFloor = document.getElementById('ft-floor');
+        const $ftName = document.getElementById('ft-name');
+        const $ftTheme = document.getElementById('ft-theme');
+
+        // ── AUDIO SYSTEM ─────────────────────────────────────────────────
+        const AudioSys = {
+            ctx: null,
+            init: function () {
+                if (this.ctx) return;
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Audio disabled');
+                }
+            },
+            play: function (type) {
+                if (!this.ctx) return;
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.connect(g);
+                g.connect(this.ctx.destination);
+                const t = this.ctx.currentTime;
+                if (type === 'correct') {
+                    o.type = 'sine'; o.frequency.setValueAtTime(440, t); o.frequency.exponentialRampToValueAtTime(880, t + 0.1);
+                    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+                    o.start(t); o.stop(t + 0.5);
+                } else if (type === 'wrong') {
+                    o.type = 'sawtooth'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(80, t + 0.2);
+                    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+                    o.start(t); o.stop(t + 0.5);
+                } else if (type === 'whisper') {
+                    o.type = 'triangle'; o.frequency.setValueAtTime(220, t); o.frequency.linearRampToValueAtTime(230, t + 1);
+                    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05, t + 0.5); g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                    o.start(t); o.stop(t + 1.5);
+                } else if (type === 'caught') {
+                    o.type = 'square'; o.frequency.setValueAtTime(60, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.8);
+                    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.1); g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+                    o.start(t); o.stop(t + 1.2);
+                } else if (type === 'advance') {
+                    // Bat fluttering and squeaks
+                    o.type = 'triangle';
+                    g.gain.setValueAtTime(0, t);
+                    for (let i = 0; i < 18; i++) {
+                        const step = t + i * 0.08;
+                        o.frequency.setValueAtTime(1800 + Math.random() * 1200, step);
+                        o.frequency.exponentialRampToValueAtTime(3000 + Math.random() * 2000, step + 0.04);
+                        g.gain.setValueAtTime(0, step);
+                        g.gain.linearRampToValueAtTime(0.08, step + 0.02);
+                        g.gain.linearRampToValueAtTime(0, step + 0.06);
+                    }
+                    o.start(t); o.stop(t + 1.5);
+                }
+            }
+        };
+
+        // ── SANITY UPDATE ────────────────────────────────────────────────
+        function setSanity(val) {
+            GS.sanity = Math.max(0, Math.min(100, val));
+            $sanityBar.style.width = GS.sanity + '%';
+            $sanityVal.textContent = Math.round(GS.sanity) + '%';
+            // Color shift
+            if (GS.sanity > 60) {
+                $sanityBar.style.background = 'linear-gradient(90deg,#00ff88,#88ff00)';
+            } else if (GS.sanity > 30) {
+                $sanityBar.style.background = 'linear-gradient(90deg,#ff8800,#ffcc00)';
+            } else {
+                $sanityBar.style.background = 'linear-gradient(90deg,#ff3344,#ff6600)';
+            }
+            // Vignette
+            const intensity = Math.max(0, (100 - GS.sanity) / 100);
+            $vignette.style.background = `radial-gradient(ellipse at center, transparent ${40 - intensity * 30}%, rgba(0,0,0,${0.7 * intensity}) 100%)`;
+            $noise.style.opacity = intensity * 0.4;
+
+            if (GS.sanity <= 0 && GS.gameActive) triggerLose();
+        }
+        function drainSanity(amount) { setSanity(GS.sanity - amount); }
+        function restoreSanity(amount) { setSanity(GS.sanity + amount); }
+
+        // ── NOTIFICATIONS ────────────────────────────────────────────────
+        let notifTimeout;
+        function showNotif(msg, good = false) {
+            $notif.textContent = msg;
+            $notif.className = good ? 'good' : '';
+            $notif.style.display = 'block';
+            clearTimeout(notifTimeout);
+            notifTimeout = setTimeout(() => $notif.style.display = 'none', 2200);
+        }
+
+        // ── WHISPER (FACULTY CLUE) ───────────────────────────────────────
+        function openWhisper() {
+            AudioSys.play('whisper');
+            const f = FLOORS[GS.currentFloor];
+            $whisperName.textContent = f.faculty.name;
+            $whisperText.textContent = f.faculty.whisper;
+            $whisperBox.style.display = 'block';
+            GS.whisperOpen = true;
+            if (!GS.facultyClueRead) {
+                GS.facultyClueRead = true;
+                setTimeout(() => { restoreSanity(5); showNotif('THEIR VOICE GROUNDS YOU  +5 SANITY', true); }, 600);
+            }
+        }
+        document.getElementById('whisper-close').onclick = () => {
+            $whisperBox.style.display = 'none';
+            GS.whisperOpen = false;
+        };
+
+        // ── PUZZLE SYSTEM ────────────────────────────────────────────────
+        function openPuzzle() {
+            if (GS.puzzleSolved) { showNotif('PUZZLE ALREADY SOLVED'); return; }
+            const f = FLOORS[GS.currentFloor];
+            const p = f.puzzle;
+            $puzzleTitle.textContent = p.title;
+            $puzzleBody.textContent = p.body;
+            $puzzleInput.innerHTML = '';
+            $puzzleAttempts.textContent = '';
+            GS.attempts = 0;
+            GS.gridSelected = [];
+            GS.puzzleOpen = true;
+            $puzzleModal.style.display = 'block';
+
+            if (p.type === 'lockers') buildLockerPuzzle(p);
+            else if (p.type === 'sequence') buildSequencePuzzle(p);
+            else if (p.type === 'grid') buildGridPuzzle(p);
+            else if (p.type === 'order') buildOrderPuzzle(p);
+            else if (p.type === 'hold') buildHoldPuzzle(p);
+        }
+
+        function closePuzzle() {
+            $puzzleModal.style.display = 'none';
+            GS.puzzleOpen = false;
+        }
+
+        // PUZZLE TYPE 1: Multiple choice lockers
+        function buildLockerPuzzle(p) {
+            p.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'puzzle-btn';
+                btn.textContent = `LOCKER ${i + 1}: ${opt.label}`;
+                btn.onclick = () => {
+                    if (opt.correct) onPuzzleCorrect();
+                    else onPuzzleWrong(btn);
+                };
+                $puzzleInput.appendChild(btn);
+            });
+        }
+
+        // PUZZLE TYPE 2: Sequence input
+        function buildSequencePuzzle(p) {
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.id = 'puzzle-number-input';
+            inp.className = 'puzzle-number-input';
+            inp.style.cssText = 'background:#111;border:1px solid #333;color:#fff;padding:10px 16px;font-family:Share Tech Mono,monospace;font-size:13px;width:100%;border-radius:2px;outline:none;letter-spacing:2px;';
+            inp.placeholder = p.placeholder;
+            inp.maxLength = 10;
+
+            const sub = document.createElement('button');
+            sub.textContent = 'SUBMIT SEQUENCE';
+            sub.style.cssText = 'background:#111;border:1px solid #ff6b35;color:#ff6b35;padding:10px 24px;font-family:Share Tech Mono,monospace;font-size:12px;cursor:pointer;border-radius:2px;letter-spacing:2px;margin-top:4px;width:100%;';
+            sub.onclick = () => {
+                const val = inp.value.replace(/\s/g, '');
+                if (val === p.answer) onPuzzleCorrect();
+                else onPuzzleWrong(sub);
+            };
+            inp.onkeydown = (e) => { if (e.key === 'Enter') sub.click(); };
+
+            $puzzleInput.appendChild(inp);
+            $puzzleInput.appendChild(sub);
+            setTimeout(() => inp.focus(), 100);
+        }
+
+        // PUZZLE TYPE 3: Grid / prime tiles
+        function buildGridPuzzle(p) {
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
+            const found = new Set();
+            const total = p.primes.length;
+
+            p.tiles.forEach(num => {
+                const tile = document.createElement('div');
+                tile.className = 'grid-tile';
+                tile.textContent = num;
+                tile.dataset.num = num;
+                tile.onclick = () => {
+                    if (tile.classList.contains('collapsed') || tile.classList.contains('selected')) return;
+                    if (p.primes.includes(num)) {
+                        tile.classList.add('selected');
+                        found.add(num);
+                        if (found.size === total) onPuzzleCorrect();
+                    } else {
+                        tile.classList.add('wrong-tile');
+                        setTimeout(() => tile.classList.add('collapsed'), 400);
+                        onPuzzleWrong(null);
+                    }
+                };
+                grid.appendChild(tile);
+            });
+            $puzzleInput.appendChild(grid);
+            const hint = document.createElement('div');
+            hint.style.cssText = 'color:#333;font-size:10px;letter-spacing:1px;margin-top:8px;';
+            hint.textContent = `SELECT ALL ${total} PRIME TILES — PRIMES ARE DIVISIBLE ONLY BY 1 AND THEMSELVES`;
+            $puzzleInput.appendChild(hint);
+        }
+
+        // PUZZLE TYPE 4: Drag-to-order paintings
+        function buildOrderPuzzle(p) {
+            const area = document.createElement('div');
+            area.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+
+            // Shuffle the items
+            let items = [...p.items].sort(() => Math.random() - 0.5);
+            GS.orderItems = items.map(i => i.id);
+
+            const renderCards = () => {
+                area.innerHTML = '';
+                GS.orderItems.forEach((id, idx) => {
+                    const item = p.items.find(i => i.id === id);
+                    const card = document.createElement('div');
+                    card.className = 'painting-card';
+                    card.textContent = `${idx + 1}. ${item.label}`;
+                    card.draggable = true;
+                    card.dataset.idx = idx;
+                    card.ondragstart = () => { GS.draggingCard = idx; card.style.opacity = '0.4'; };
+                    card.ondragend = () => { card.style.opacity = '1'; };
+                    card.ondragover = (e) => { e.preventDefault(); };
+                    card.ondrop = () => {
+                        if (GS.draggingCard === null || GS.draggingCard === idx) return;
+                        const arr = [...GS.orderItems];
+                        const [moved] = arr.splice(GS.draggingCard, 1);
+                        arr.splice(idx, 0, moved);
+                        GS.orderItems = arr;
+                        GS.draggingCard = null;
+                        renderCards();
+                    };
+                    area.appendChild(card);
+                });
+
+                const sub = document.createElement('button');
+                sub.textContent = 'CONFIRM ORDER';
+                sub.style.cssText = 'background:#111;border:1px solid #ff6b35;color:#ff6b35;padding:10px 24px;font-family:Share Tech Mono,monospace;font-size:12px;cursor:pointer;border-radius:2px;letter-spacing:2px;margin-top:8px;width:100%;';
+                sub.onclick = () => {
+                    const correct = p.correctOrder.join('') === GS.orderItems.join('');
+                    if (correct) onPuzzleCorrect();
+                    else onPuzzleWrong(sub);
+                };
+                area.appendChild(sub);
+
+                const hint2 = document.createElement('div');
+                hint2.style.cssText = 'color:#333;font-size:10px;letter-spacing:1px;margin-top:6px;text-align:center;';
+                hint2.textContent = 'DRAG CARDS TO REORDER · CLICK CONFIRM WHEN READY';
+                area.appendChild(hint2);
+            };
+
+            renderCards();
+            $puzzleInput.appendChild(area);
+        }
+
+        // PUZZLE TYPE 5: Hold button (final floor)
+        let holdInterval = null;
+        let holdProgress = 0;
+        function buildHoldPuzzle(p) {
+            // Show recap of previous solutions
+            const recap = document.createElement('div');
+            recap.style.cssText = 'color:#333;font-size:10px;letter-spacing:1px;margin-bottom:12px;line-height:2;border-left:2px solid #1a1a1a;padding-left:12px;';
+            recap.innerHTML = '✓ FLOOR G — LOCKER 4 OPENED<br>✓ FLOOR 1 — SEQUENCE: 19478<br>✓ FLOOR 2 — PRIME TILES STEPPED<br>✓ FLOOR 3 — SILENCE → WORDS → CONSEQUENCE';
+            $puzzleInput.appendChild(recap);
+
+            const btn = document.createElement('button');
+            btn.id = 'hold-btn';
+            btn.style.cssText = 'background:#0a0a0a;border:2px solid #ff6b35;color:#ff6b35;padding:18px 40px;font-family:Share Tech Mono,monospace;font-size:13px;cursor:pointer;border-radius:2px;letter-spacing:3px;position:relative;overflow:hidden;width:100%;display:block;';
+            btn.textContent = 'HOLD TO OPEN — 5 SECONDS';
+
+            const prog = document.createElement('div');
+            prog.id = 'hold-progress';
+            prog.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:#ff6b35;width:0%;transition:none;';
+            btn.appendChild(prog);
+
+            btn.onmousedown = btn.ontouchstart = () => {
+                holdProgress = 0;
+                holdInterval = setInterval(() => {
+                    holdProgress += 2;
+                    prog.style.width = holdProgress + '%';
+                    if (holdProgress >= 100) {
+                        clearInterval(holdInterval);
+                        onPuzzleCorrect();
+                    }
+                }, 100);
+            };
+            const stop = () => {
+                clearInterval(holdInterval);
+                if (holdProgress < 100) {
+                    holdProgress = 0;
+                    prog.style.width = '0%';
+                }
+            };
+            btn.onmouseup = btn.ontouchend = btn.onmouseleave = stop;
+
+            $puzzleInput.appendChild(btn);
+        }
+
+        // ── PUZZLE OUTCOMES ──────────────────────────────────────────────
+        function onPuzzleCorrect() {
+            AudioSys.play('correct');
+            GS.puzzleSolved = true;
+            closePuzzle();
+            restoreSanity(10);
+            showNotif('PUZZLE SOLVED  +10 SANITY', true);
+            GS.nearStairs = true; // stairs unlocked
+            setTimeout(() => {
+                showNotif('STAIRCASE UNLOCKED — REACH THE STAIRS', true);
+            }, 2500);
+        }
+
+        function onPuzzleWrong(el) {
+            AudioSys.play('wrong');
+            GS.attempts++;
+            drainSanity(10);
+            showNotif(`WRONG  -10 SANITY  (ATTEMPT ${GS.attempts})`);
+            if (el) {
+                el.classList.add('wrong');
+                setTimeout(() => el.classList.remove('wrong'), 500);
+            }
+            $puzzleAttempts.textContent = `ATTEMPTS: ${GS.attempts}`;
+        }
+
+        // ── FLOOR TRANSITION ─────────────────────────────────────────────
+        function showFloorTransition(idx, cb) {
+            AudioSys.play('advance');
+            const f = FLOORS[idx];
+            $ftFloor.textContent = idx === 0 ? 'GROUND FLOOR' : `FLOOR ${f.id}`;
+            $ftName.textContent = f.name;
+            $ftTheme.textContent = f.theme;
+            $ft.style.display = 'flex';
+            setTimeout(() => {
+                $ft.style.display = 'none';
+                if (cb) cb();
+            }, 2800);
+        }
+
+        // ── WIN / LOSE ───────────────────────────────────────────────────
+        function triggerWin() {
+            GS.gameActive = false;
+            $endTitle.textContent = 'ROOM 502';
+            $endTitle.style.color = '#00ff88';
+            $endSub.textContent = 'ARJUN SITS AT HIS DESK. SANITY RESTORED. THE EXAM BEGINS.';
+            $endSub.style.color = '#555';
+            $endScreen.style.display = 'flex';
+            if (phaserGame) phaserGame.scene.pause('GameScene');
+        }
+
+        function triggerLose() {
+            GS.gameActive = false;
+            $endTitle.textContent = 'SWALLOWED';
+            $endTitle.style.color = '#ff3344';
+            $endSub.textContent = '"HE NEVER MADE IT TO CLASS."';
+            $endSub.style.color = '#555';
+            $endScreen.style.display = 'flex';
+            if (phaserGame) phaserGame.scene.pause('GameScene');
+        }
+
+        document.getElementById('end-restart').onclick = () => {
+            $endScreen.style.display = 'none';
+            resetGame();
+        };
+
+        function resetGame() {
+            GS.currentFloor = 0;
+            GS.sanity = 100;
+            GS.gameActive = false;
+            GS.puzzleSolved = false;
+            GS.facultyClueRead = false;
+            GS.nearFaculty = false;
+            GS.nearPuzzle = false;
+            GS.nearStairs = false;
+            GS.puzzleOpen = false;
+            GS.whisperOpen = false;
+            GS.attempts = 0;
+            setSanity(100);
+            if (phaserGame) {
+                phaserGame.scene.stop('GameScene');
+                phaserGame.scene.start('GameScene');
+            }
+        }
+
+        // ── INTERACT HINT ────────────────────────────────────────────────
+        function updateHint() {
+            if (GS.puzzleSolved && GS.nearStairs) {
+                $hint.textContent = '[ E ] CLIMB STAIRS';
+                $hint.style.color = '#00ff88';
+            } else if (GS.nearFaculty) {
+                $hint.textContent = '[ E ] LISTEN TO TEACHER';
+                $hint.style.color = '#ff6b35';
+            } else if (GS.nearPuzzle) {
+                $hint.textContent = GS.puzzleSolved ? '[ PUZZLE SOLVED ]' : '[ E ] EXAMINE PUZZLE';
+                $hint.style.color = GS.puzzleSolved ? '#00ff88' : '#aaa';
+            } else {
+                $hint.textContent = 'WASD · MOVE';
+                $hint.style.color = '#222';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PHASER SCENE
+        // ═══════════════════════════════════════════════════════════════
+        class GameScene extends Phaser.Scene {
+            constructor() { super('GameScene'); }
+
+            create() {
+                this.floorData = FLOORS[GS.currentFloor];
+                $floorLabel.textContent = GS.currentFloor === 0 ? 'FLOOR G' : `FLOOR ${this.floorData.id}`;
+                setSanity(this.floorData.sanityStart);
+
+                GS.puzzleSolved = false;
+                GS.facultyClueRead = false;
+                GS.nearFaculty = false;
+                GS.nearPuzzle = false;
+                GS.nearStairs = false;
+                GS.puzzleOpen = false;
+                GS.whisperOpen = false;
+                GS.gameActive = true;
+
+                this.buildLevel();
+                this.buildPlayer();
+                this.buildMonster();
+                this.buildInteractibles();
+                this.setupKeys();
+                this.setupSanityDrain();
+                this.cameras.main.setBackgroundColor(this.floorData.bgColor);
+            }
+
+            // ── LEVEL ──────────────────────────────────────────────────────
+            buildLevel() {
+                const fd = this.floorData;
+                const W = 800, H = 600;
+                const g = this.add.graphics();
+
+                // Floor
+                g.fillStyle(fd.floorColor, 1);
+                g.fillRect(0, 0, W, H);
+
+                // Hallway walls (top and bottom strips)
+                g.fillStyle(fd.wallColor, 1);
+                g.fillRect(0, 0, W, 80);      // top wall
+                g.fillRect(0, H - 80, W, 80);   // bottom wall
+
+                // Wall detail lines
+                g.lineStyle(1, 0xffffff, 0.03);
+                for (let x = 0; x < W; x += 40) {
+                    g.strokeLineShape(new Phaser.Geom.Line(x, 80, x, H - 80));
+                }
+                for (let y = 80; y < H - 80; y += 40) {
+                    g.strokeLineShape(new Phaser.Geom.Line(0, y, W, y));
+                }
+
+                // Lockers / decorations on top wall
+                g.fillStyle(fd.wallColor + 0x101010, 1);
+                for (let i = 0; i < 5; i++) {
+                    g.fillRect(60 + i * 140, 88, 80, 88);
+                    g.lineStyle(1, 0xffffff, 0.06);
+                    g.strokeRect(60 + i * 140, 88, 80, 88);
+                }
+
+                // Extra Creepy Decor: Hanging Bats at the ceiling edge
+                g.fillStyle(0x050505, 1);
+                for (let i = 0; i < 6; i++) {
+                    if (Math.random() > 0.3) {
+                        const bx = 100 + i * 120 + Math.random() * 40;
+                        const by = 80; // top wall edge
+
+                        // Hanging bat shape
+                        g.beginPath();
+                        g.moveTo(bx, by);
+                        g.lineTo(bx - 10, by + 8);
+                        g.lineTo(bx - 6, by + 18);
+                        g.lineTo(bx, by + 24);
+                        g.lineTo(bx + 6, by + 18);
+                        g.lineTo(bx + 10, by + 8);
+                        g.closePath();
+                        g.fillPath();
+
+                        // Tiny glowing red eyes
+                        g.fillStyle(0xff1111, 0.9);
+                        g.fillRect(bx - 4, by + 16, 2, 2);
+                        g.fillRect(bx + 2, by + 16, 2, 2);
+                        g.fillStyle(0x050505, 1);
+                    }
+                }
+
+                // Staircase door (right side) — only shows after puzzle solved
+                this.stairDoor = this.add.graphics();
+                this.drawStairDoor(false);
+
+                // Darkness zones
+                this.darkZones = [
+                    new Phaser.Geom.Rectangle(200, 80, 120, 440),
+                    new Phaser.Geom.Rectangle(500, 80, 120, 440),
+                ];
+                this.darkZones.forEach(z => {
+                    const dg = this.add.graphics();
+                    dg.fillStyle(0x000000, 0.35);
+                    dg.fillRect(z.x, z.y, z.width, z.height);
+                });
+
+                // Floor number label
+                this.add.text(W / 2, H - 55, `FLOOR ${this.floorData.id === 'G' ? 'G' : this.floorData.id} — ${this.floorData.name}`, {
+                    font: '10px Share Tech Mono',
+                    fill: '#222',
+                    letterSpacing: 3
+                }).setOrigin(0.5);
+
+                // Initialize flying bats
+                this.flyingBats = [];
+                this.batGraphics = this.add.graphics();
+                for (let i = 0; i < 5; i++) {
+                    this.flyingBats.push({
+                        x: Math.random() * W,
+                        y: Phaser.Math.Between(100, 480),
+                        vx: (Math.random() > 0.5 ? 1 : -1) * (1.2 + Math.random() * 2),
+                        vy: (Math.random() - 0.5) * 1.5,
+                        frameOff: Math.random() * Math.PI * 2
+                    });
+                }
+
+                // Sanity flicker effect (ambient)
+                this.time.addEvent({
+                    delay: Phaser.Math.Between(3000, 8000),
+                    callback: this.flickerLights,
+                    callbackScope: this,
+                    loop: true
+                });
+            }
+
+            drawStairDoor(open) {
+                this.stairDoor.clear();
+                if (open) {
+                    this.stairDoor.fillStyle(0x00ff88, 0.15);
+                    this.stairDoor.fillRect(720, 200, 60, 180);
+                    this.stairDoor.lineStyle(2, 0x00ff88, 0.8);
+                    this.stairDoor.strokeRect(720, 200, 60, 180);
+                    this.add.text(750, 290, '↑', { font: 'bold 24px Share Tech Mono', fill: '#00ff88' }).setOrigin(0.5);
+                } else {
+                    this.stairDoor.fillStyle(0x111111, 1);
+                    this.stairDoor.fillRect(720, 200, 60, 180);
+                    this.stairDoor.lineStyle(1, 0x222222, 1);
+                    this.stairDoor.strokeRect(720, 200, 60, 180);
+                }
+            }
+
+            flickerLights() {
+                this.cameras.main.flash(Phaser.Math.Between(30, 120), 10, 10, 10);
+            }
+
+            // ── PLAYER ────────────────────────────────────────────────────
+            buildPlayer() {
+                this.player = this.add.graphics();
+                this.playerX = 60;
+                this.playerY = 300;
+                this.walkFrame = 0;
+                this.drawPlayer();
+
+                // Shadow (floor G monster concept — a trailing ghost)
+                this.shadowX = 60;
+                this.shadowY = 300;
+                this.shadowGraphic = this.add.graphics();
+                this.shadowTrail = [];
+                this.posHistory = [];
+            }
+
+            drawPlayer() {
+                this.player.clear();
+                // Draw as an Among Us character! (Orange suit default)
+                this.drawAmongUs(this.player, this.playerX, this.playerY, 0xe55b00, 1, this.walkFrame);
+            }
+
+            drawAmongUs(g, x, y, color, alpha, frame = 0) {
+                const walk1 = Math.sin(frame) * 4;
+                const walk2 = Math.sin(frame + Math.PI) * 4;
+
+                // Outline (Black)
+                g.fillStyle(0x000000, alpha);
+                g.fillRoundedRect(x - 18, y - 8, 10, 20, 4); // backpack
+                g.fillRoundedRect(x - 12, y - 16, 24, 34, 10); // body
+                g.fillRoundedRect(x - 12, y + 8 + walk1, 8, 14, 4);    // left leg
+                g.fillRoundedRect(x + 4, y + 8 + walk2, 8, 14, 4);     // right leg
+
+                // Fill
+                g.fillStyle(color, alpha);
+                g.fillRoundedRect(x - 16, y - 6, 8, 16, 3); // backpack
+                g.fillRoundedRect(x - 10, y + 8 + walk1, 6, 12, 3); // left leg
+                g.fillRoundedRect(x + 4, y + 8 + walk2, 6, 12, 3);  // right leg
+                g.fillRoundedRect(x - 10, y - 14, 20, 30, 8); // body
+
+                // Visor Outline
+                g.fillStyle(0x000000, alpha);
+                g.fillRoundedRect(x - 2, y - 10, 18, 14, 6);
+
+                // Visor Fill (Light Blue)
+                g.fillStyle(0x8cb5cd, alpha);
+                g.fillRoundedRect(x, y - 8, 14, 10, 4);
+
+                // Visor Highlight (White)
+                g.fillStyle(0xffffff, alpha);
+                g.fillRoundedRect(x + 4, y - 6, 6, 3, 1);
+            }
+
+            // ── MONSTER ───────────────────────────────────────────────────
+            buildMonster() {
+                const fd = this.floorData;
+                this.monsterX = 380;
+                this.monsterY = 300;
+                this.monsterFrame = 0;
+                this.monsterGraphic = this.add.graphics();
+                this.monsterSpeed = 1.0;
+                this.monsterPatrol = true;
+                this.monsterDir = 1;
+                this.monsterPatrolMin = 200;
+                this.monsterPatrolMax = 600;
+                this.monsterAware = false;
+                this.monsterAwareTimer = 0;
+                this.drawMonster();
+            }
+
+            drawMonster() {
+                const fd = this.floorData;
+                this.monsterGraphic.clear();
+                const alpha = this.monsterAware ? 0.9 : 0.55;
+
+                // Each floor gets a different monster shape
+                const fl = GS.currentFloor;
+                this.monsterGraphic.fillStyle(fd.monsterColor, alpha);
+
+                if (fl === 0) {
+                    // Shadow — mirror of player (Among Us Style)
+                    this.drawAmongUs(this.monsterGraphic, this.monsterX, this.monsterY, fd.monsterColor, alpha, this.monsterFrame || 0);
+                } else if (fl === 1) {
+                    // Classmates — three Among Us Imposters (All Red)
+                    const colors = [0xff1111, 0xff1111, 0xff1111];
+                    [-24, 0, 24].forEach((dx, idx) => {
+                        this.drawAmongUs(this.monsterGraphic, this.monsterX + dx, this.monsterY, colors[idx], alpha, (this.monsterFrame || 0) + (idx * Math.PI));
+                    });
+                } else if (fl === 2) {
+                    // Equation — floating chalkboard
+                    this.monsterGraphic.fillRect(this.monsterX - 20, this.monsterY - 15, 40, 30);
+                    this.monsterGraphic.lineStyle(1, fd.monsterColor, 0.5);
+                    this.monsterGraphic.strokeRect(this.monsterX - 20, this.monsterY - 15, 40, 30);
+                    // Math symbols
+                    this.monsterGraphic.fillStyle(0x000000, 0.5);
+                    this.monsterGraphic.fillCircle(this.monsterX - 8, this.monsterY, 3);
+                    this.monsterGraphic.fillCircle(this.monsterX + 8, this.monsterY, 3);
+                } else if (fl === 3) {
+                    // Regret — shapeless expanding mass
+                    const pulse = 1 + 0.15 * Math.sin(Date.now() / 400);
+                    for (let r = 30; r > 0; r -= 8) {
+                        this.monsterGraphic.fillStyle(fd.monsterColor, alpha * (r / 30) * 0.5);
+                        this.monsterGraphic.fillCircle(this.monsterX, this.monsterY, r * pulse);
+                    }
+                } else if (fl === 4) {
+                    // The Self — towering shadow with face
+                    this.monsterGraphic.fillRect(this.monsterX - 14, this.monsterY - 30, 28, 50);
+                    this.monsterGraphic.fillCircle(this.monsterX, this.monsterY - 38, 14);
+                    // Eyes
+                    this.monsterGraphic.fillStyle(0x000000, 1);
+                    this.monsterGraphic.fillCircle(this.monsterX - 5, this.monsterY - 40, 3);
+                    this.monsterGraphic.fillCircle(this.monsterX + 5, this.monsterY - 40, 3);
+                }
+            }
+
+            // ── INTERACTIBLES ─────────────────────────────────────────────
+            buildInteractibles() {
+                const fd = this.floorData;
+
+                // Faculty member (teacher) — left area
+                this.teacherX = 160;
+                this.teacherY = 300;
+                this.teacherGraphic = this.add.graphics();
+                this.drawTeacher();
+
+                // Pulsing teacher label
+                this.teacherLabel = this.add.text(this.teacherX, this.teacherY - 36, '?', {
+                    font: 'bold 14px Share Tech Mono',
+                    fill: '#ff6b35'
+                }).setOrigin(0.5);
+
+                this.tweens.add({
+                    targets: this.teacherLabel,
+                    alpha: 0.2,
+                    duration: 900,
+                    yoyo: true,
+                    repeat: -1
+                });
+
+                // Puzzle object — center-right area
+                this.puzzleX = 520;
+                this.puzzleY = 300;
+                this.puzzleGraphic = this.add.graphics();
+                this.drawPuzzleObject();
+
+                this.puzzleLabel = this.add.text(this.puzzleX, this.puzzleY - 40, '⬡', {
+                    font: '18px Share Tech Mono',
+                    fill: '#4488ff'
+                }).setOrigin(0.5);
+
+                this.tweens.add({
+                    targets: this.puzzleLabel,
+                    y: this.puzzleY - 46,
+                    duration: 1200,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+
+                // Stairs (far right, unlocked after puzzle)
+                this.stairsX = 750;
+                this.stairsY = 290;
+            }
+
+            drawTeacher() {
+                this.teacherGraphic.clear();
+                // Teacher as an Among Us character (Dark Blue)
+                this.drawAmongUs(this.teacherGraphic, this.teacherX, this.teacherY, 0x1d3a5e, 1, 0);
+
+                // Accessory: Red Tie
+                this.teacherGraphic.fillStyle(0xcc1111, 1);
+                this.teacherGraphic.fillTriangle(
+                    this.teacherX - 3, this.teacherY - 2,
+                    this.teacherX + 3, this.teacherY - 2,
+                    this.teacherX, this.teacherY + 10
+                );
+
+                // Accessory: Brown Clipboard
+                this.teacherGraphic.fillStyle(0xaa8866, 1);
+                this.teacherGraphic.fillRoundedRect(this.teacherX - 22, this.teacherY - 4, 12, 16, 2);
+                this.teacherGraphic.lineStyle(1, 0x000000, 1);
+                this.teacherGraphic.strokeRoundedRect(this.teacherX - 22, this.teacherY - 4, 12, 16, 2);
+
+                // Accessory: Graduation Hat (Mortarboard)
+                this.teacherGraphic.fillStyle(0x111111, 1);
+                // Cap base
+                this.teacherGraphic.fillRect(this.teacherX - 10, this.teacherY - 18, 20, 6);
+                // Top board (parallelogram/flat diamond)
+                this.teacherGraphic.beginPath();
+                this.teacherGraphic.moveTo(this.teacherX, this.teacherY - 26);
+                this.teacherGraphic.lineTo(this.teacherX + 18, this.teacherY - 20);
+                this.teacherGraphic.lineTo(this.teacherX, this.teacherY - 14);
+                this.teacherGraphic.lineTo(this.teacherX - 18, this.teacherY - 20);
+                this.teacherGraphic.closePath();
+                this.teacherGraphic.fillPath();
+                // Gold Tassel
+                this.teacherGraphic.lineStyle(2, 0xffcc00, 1);
+                this.teacherGraphic.beginPath();
+                this.teacherGraphic.moveTo(this.teacherX, this.teacherY - 20);
+                this.teacherGraphic.lineTo(this.teacherX + 14, this.teacherY - 12);
+                this.teacherGraphic.strokePath();
+            }
+
+            drawPuzzleObject() {
+                this.puzzleGraphic.clear();
+                const fl = GS.currentFloor;
+                if (fl === 0) {
+                    // Lockers
+                    for (let i = -2; i <= 2; i++) {
+                        this.puzzleGraphic.fillStyle(0x223355, 0.8);
+                        this.puzzleGraphic.fillRect(this.puzzleX + i * 22 - 9, this.puzzleY - 18, 18, 36);
+                        this.puzzleGraphic.lineStyle(1, 0x4488ff, 0.4);
+                        this.puzzleGraphic.strokeRect(this.puzzleX + i * 22 - 9, this.puzzleY - 18, 18, 36);
+                    }
+                } else if (fl === 1) {
+                    // Blackboard
+                    this.puzzleGraphic.fillStyle(0x1a2a1a, 0.9);
+                    this.puzzleGraphic.fillRect(this.puzzleX - 32, this.puzzleY - 22, 64, 44);
+                    this.puzzleGraphic.lineStyle(1, 0x446644, 0.6);
+                    this.puzzleGraphic.strokeRect(this.puzzleX - 32, this.puzzleY - 22, 64, 44);
+                } else if (fl === 2) {
+                    // Tile grid miniature
+                    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+                        const col = [2, 3, 5, 7, 11, 13].includes(r * 4 + c + 1) ? 0x224422 : 0x221111;
+                        this.puzzleGraphic.fillStyle(col, 0.8);
+                        this.puzzleGraphic.fillRect(this.puzzleX - 28 + c * 14, this.puzzleY - 28 + r * 14, 12, 12);
+                    }
+                } else if (fl === 3) {
+                    // Paintings on wall
+                    for (let i = 0; i < 3; i++) {
+                        this.puzzleGraphic.fillStyle(0x2a2a1a, 0.9);
+                        this.puzzleGraphic.fillRect(this.puzzleX - 42 + i * 30, this.puzzleY - 24, 24, 36);
+                        this.puzzleGraphic.lineStyle(1, 0x886644, 0.5);
+                        this.puzzleGraphic.strokeRect(this.puzzleX - 42 + i * 30, this.puzzleY - 24, 24, 36);
+                    }
+                } else if (fl === 4) {
+                    // Door
+                    this.puzzleGraphic.fillStyle(0x1a1a1a, 1);
+                    this.puzzleGraphic.fillRect(this.puzzleX - 22, this.puzzleY - 34, 44, 68);
+                    this.puzzleGraphic.lineStyle(2, 0xff6b35, 0.8);
+                    this.puzzleGraphic.strokeRect(this.puzzleX - 22, this.puzzleY - 34, 44, 68);
+                    // Five lock dots
+                    for (let i = 0; i < 5; i++) {
+                        this.puzzleGraphic.fillStyle(GS.currentFloor > 4 ? 0x00ff88 : 0x333333, 1);
+                        this.puzzleGraphic.fillCircle(this.puzzleX - 12 + i * 6, this.puzzleY - 10, 3);
+                    }
+                }
+            }
+
+            // ── KEYS ──────────────────────────────────────────────────────
+            setupKeys() {
+                this.keys = this.input.keyboard.addKeys({
+                    up: Phaser.Input.Keyboard.KeyCodes.W,
+                    down: Phaser.Input.Keyboard.KeyCodes.S,
+                    left: Phaser.Input.Keyboard.KeyCodes.A,
+                    right: Phaser.Input.Keyboard.KeyCodes.D,
+                    upArr: Phaser.Input.Keyboard.KeyCodes.UP,
+                    downArr: Phaser.Input.Keyboard.KeyCodes.DOWN,
+                    leftArr: Phaser.Input.Keyboard.KeyCodes.LEFT,
+                    rightArr: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+                    interact: Phaser.Input.Keyboard.KeyCodes.E,
+                });
+
+                this.input.keyboard.on('keydown-E', () => {
+                    if (!GS.gameActive || GS.puzzleOpen) return;
+                    if (GS.whisperOpen) { $whisperBox.style.display = 'none'; GS.whisperOpen = false; return; }
+                    if (GS.nearStairs && GS.puzzleSolved) {
+                        this.advanceFloor();
+                    } else if (GS.nearFaculty) {
+                        openWhisper();
+                    } else if (GS.nearPuzzle) {
+                        openPuzzle();
+                    }
+                });
+            }
+
+            // ── SANITY DRAIN IN DARK ZONES ────────────────────────────────
+            setupSanityDrain() {
+                this.time.addEvent({
+                    delay: 3000,
+                    callback: () => {
+                        if (!GS.gameActive || GS.puzzleOpen) return;
+                        const inDark = this.darkZones.some(z =>
+                            this.playerX > z.x && this.playerX < z.x + z.width &&
+                            this.playerY > z.y && this.playerY < z.y + z.height
+                        );
+                        if (inDark) {
+                            drainSanity(1);
+                            showNotif('DARKNESS CREEPS IN  -1 SANITY');
+                        }
+                    },
+                    loop: true
+                });
+            }
+
+            // ── UPDATE LOOP ───────────────────────────────────────────────
+            update() {
+                if (!GS.gameActive || GS.puzzleOpen || GS.whisperOpen) return;
+
+                const spd = 1.5;
+                let moved = false;
+
+                const up = this.keys.up.isDown || this.keys.upArr.isDown;
+                const down = this.keys.down.isDown || this.keys.downArr.isDown;
+                const left = this.keys.left.isDown || this.keys.leftArr.isDown;
+                const right = this.keys.right.isDown || this.keys.rightArr.isDown;
+
+                if (up) { this.playerY -= spd; moved = true; }
+                if (down) { this.playerY += spd; moved = true; }
+                if (left) { this.playerX -= spd; moved = true; }
+                if (right) { this.playerX += spd; moved = true; }
+
+                // Clamp to hallway
+                this.playerX = Phaser.Math.Clamp(this.playerX, 20, 780);
+                this.playerY = Phaser.Math.Clamp(this.playerY, 88, 512);
+
+                if (moved) {
+                    this.walkFrame += 0.3;
+                } else {
+                    this.walkFrame = 0;
+                }
+
+                this.drawPlayer();
+
+                // Monster update
+                this.updateMonster(moved);
+
+                // Check proximity
+                this.checkProximity();
+
+                // Position history for shadow (Floor G monster)
+                if (GS.currentFloor === 0) {
+                    this.posHistory.push({ x: this.playerX, y: this.playerY, f: this.walkFrame });
+                    if (this.posHistory.length > 90) this.posHistory.shift(); // ~3 sec at 30fps
+                    if (this.posHistory.length >= 90) {
+                        const hist = this.posHistory[0];
+                        this.monsterX = hist.x;
+                        this.monsterY = hist.y;
+                        this.monsterFrame = hist.f;
+                        this.drawMonster();
+                    }
+                }
+
+                // Update and draw flying bats
+                this.batGraphics.clear();
+                this.batGraphics.fillStyle(0x0a0a0a, 0.85);
+                this.flyingBats.forEach(b => {
+                    b.x += b.vx;
+                    b.y += b.vy + Math.sin(Date.now() / 200 + b.frameOff) * 0.5;
+
+                    if (b.x < -20) b.x = 820;
+                    if (b.x > 820) b.x = -20;
+                    if (b.y < 80) { b.y = 80; b.vy *= -1; }
+                    if (b.y > 520) { b.y = 520; b.vy *= -1; }
+
+                    const flap = Math.sin(Date.now() / 80 + b.frameOff) * 6;
+
+                    this.batGraphics.beginPath();
+                    this.batGraphics.moveTo(b.x, b.y);
+                    this.batGraphics.lineTo(b.x - 8, b.y - flap);
+                    this.batGraphics.lineTo(b.x - 4, b.y - flap - 2);
+                    this.batGraphics.lineTo(b.x, b.y + 2);
+                    this.batGraphics.lineTo(b.x + 4, b.y - flap - 2);
+                    this.batGraphics.lineTo(b.x + 8, b.y - flap);
+                    this.batGraphics.closePath();
+                    this.batGraphics.fillPath();
+
+                    if (flap > 2) {
+                        this.batGraphics.fillStyle(0xff0000, 0.6);
+                        this.batGraphics.fillRect(b.x - 3, b.y + 1, 2, 2);
+                        this.batGraphics.fillRect(b.x + 1, b.y + 1, 2, 2);
+                        this.batGraphics.fillStyle(0x0a0a0a, 0.85);
+                    }
+                });
+
+                updateHint();
+            }
+
+            updateMonster(playerMoved) {
+                const fd = this.floorData;
+                if (GS.currentFloor === 0) return; // handled via history above
+
+                const dx = this.playerX - this.monsterX;
+                const dy = this.playerY - this.monsterY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const detectionRange = 180;
+
+                // Floor 3: Regret expands when player stands still
+                if (GS.currentFloor === 3 && !playerMoved) {
+                    this.monsterSpeed = Math.min(this.monsterSpeed + 0.008, 1.8);
+                } else {
+                    this.monsterSpeed = Math.max(0.7, this.monsterSpeed - 0.02);
+                }
+
+                // Floor 4: mirror movement with delay (handled differently — monster copies player)
+                if (GS.currentFloor === 4) {
+                    // Convergence — monster slowly follows
+                    this.monsterX += (dx / dist) * 0.5;
+                    this.monsterY += (dy / dist) * 0.5;
+                    this.drawMonster();
+                    // Catch check
+                    if (dist < 24) this.monsterCatch();
+                    return;
+                }
+
+                // Aware detection
+                if (dist < detectionRange) {
+                    this.monsterAware = true;
+                    this.monsterAwareTimer = 120;
+                }
+                if (this.monsterAwareTimer > 0) this.monsterAwareTimer--;
+                else this.monsterAware = false;
+
+                if (this.monsterAware) {
+                    // Chase
+                    this.monsterX += (dx / dist) * this.monsterSpeed * 1.4;
+                    this.monsterY += (dy / dist) * this.monsterSpeed * 1.4;
+                    this.monsterFrame += Math.abs(this.monsterSpeed * 1.4) * 0.2;
+                } else {
+                    // Patrol
+                    this.monsterX += this.monsterSpeed * this.monsterDir;
+                    this.monsterFrame += Math.abs(this.monsterSpeed) * 0.2;
+                    if (this.monsterX > this.monsterPatrolMax || this.monsterX < this.monsterPatrolMin) {
+                        this.monsterDir *= -1;
+                    }
+                }
+
+                this.drawMonster();
+
+                if (dist < 24) this.monsterCatch();
+            }
+
+            monsterCatch() {
+                AudioSys.play('caught');
+                drainSanity(15);
+                showNotif('CAUGHT!  -15 SANITY');
+                // Reset player to floor start
+                this.playerX = 60;
+                this.playerY = 300;
+                this.monsterX = 380;
+                this.monsterY = 300;
+                this.cameras.main.shake(400, 0.015);
+                this.cameras.main.flash(200, 40, 0, 0);
+            }
+
+            checkProximity() {
+                const REACH = 70;
+
+                // Faculty
+                const dTeach = Math.hypot(this.playerX - this.teacherX, this.playerY - this.teacherY);
+                GS.nearFaculty = dTeach < REACH;
+
+                // Puzzle
+                const dPuzz = Math.hypot(this.playerX - this.puzzleX, this.playerY - this.puzzleY);
+                GS.nearPuzzle = dPuzz < REACH;
+
+                // Stairs
+                const dStairs = Math.hypot(this.playerX - this.stairsX, this.playerY - this.stairsY);
+                GS.nearStairs = dStairs < REACH;
+
+                // Unlock stair door visually
+                if (GS.puzzleSolved) {
+                    this.drawStairDoor(true);
+                }
+            }
+
+            // ── FLOOR ADVANCE ─────────────────────────────────────────────
+            advanceFloor() {
+                GS.gameActive = false;
+                restoreSanity(10); // floor clear bonus
+                showNotif('FLOOR CLEARED  +10 SANITY', true);
+
+                const next = GS.currentFloor + 1;
+
+                if (next >= FLOORS.length) {
+                    // WIN
+                    setTimeout(() => triggerWin(), 1200);
+                    return;
+                }
+
+                setTimeout(() => {
+                    showFloorTransition(next, () => {
+                        GS.currentFloor = next;
+                        $floorLabel.textContent = `FLOOR ${FLOORS[next].id}`;
+                        this.scene.restart();
+                    });
+                }, 1000);
+            }
+        }
+
+        // ── MENU ─────────────────────────────────────────────────────────
+        document.getElementById('menu-start').onclick = () => {
+            AudioSys.init();
+            document.getElementById('menu-screen').style.display = 'none';
+            showFloorTransition(0, () => {
+                phaserGame.scene.start('GameScene');
+            });
+        };
+
+        // ── PHASER INIT ───────────────────────────────────────────────────
+        let phaserGame;
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#000000',
+            scene: [GameScene],
+            audio: { disableWebAudio: false },
+        };
+
+        phaserGame = new Phaser.Game(config);
+
+        // Hide canvas until game starts
+        phaserGame.events.once('ready', () => {
+            const canvas = document.querySelector('#game-container canvas');
+            if (canvas) {
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+            }
+        });
+
+        // ── AMBIENT SANITY FLICKER (CSS) ──────────────────────────────────
+        setInterval(() => {
+            if (!GS.gameActive) return;
+            if (GS.sanity < 40 && Math.random() < 0.15) {
+                document.body.style.filter = `hue-rotate(${Phaser.Math.Between(-10, 10)}deg)`;
+                setTimeout(() => document.body.style.filter = '', 120);
+            }
+        }, 800);
+    </script>
+</body>
+
 </html>
